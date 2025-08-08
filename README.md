@@ -1,122 +1,131 @@
-# VR 디펜스 슈팅 게임 – Unity 프로젝트
+# Unity VR 디펜스 슈팅 게임
 
-![YouTube Thumbnail](https://img.youtube.com/vi/MuP1mdIqHVw/maxresdefault.jpg)
-[시연 영상 바로가기](https://youtu.be/MuP1mdIqHVw)
+![VR Shooter](https://img.youtube.com/vi/MuP1mdIqHVw/maxresdefault.jpg)
+
+[**시연 영상 보기**](https://youtu.be/MuP1mdIqHVw)
 
 ---
 
 ## 프로젝트 개요
 
-이 프로젝트는 Unity 기반의 VR 디펜스 슈팅 게임으로, 플레이어는 VR 컨트롤러를 통해 무기를 조작하며 끊임없이 몰려오는 적들을 방어합니다.
-적이 본진(Core)에 도달하지 못하게 막는 것이 목표입니다.
-
----
-
-## 시연 영상
-
-[시연 영상 보기](https://youtu.be/MuP1mdIqHVw)
+Unity와 XR Interaction Toolkit 기반으로 제작된 **VR 디펜스 슈팅 게임**입니다.
+플레이어는 VR 컨트롤러를 활용해 무기를 조작하며, 본진(Core)을 향해 몰려오는 적들을 방어하는 것이 목적입니다.
+**웨이브 시스템, VR 무기 조작, 시선 기반 인터랙션** 등 다양한 VR 인터페이스가 구현되어 있습니다.
 
 ---
 
 ## 주요 기능
 
-| 시스템          | 기능 설명                                      |
-| ------------ | ------------------------------------------ |
-| 총기 시스템       | VR에서 무기를 잡고, 발사하고, 리로드하는 전반적인 시스템          |
-| 적 AI/웨이브 시스템 | 점점 증가하는 수의 적(Mob)을 스폰하고, Core를 향해 이동하게 함   |
-| 피격 판정 및 이펙트  | 적이 피격되면 VFX, SFX, 진동 등의 피드백 제공             |
-| UI 시스템       | 생존 시간, 적 처치 수, 탄약, 본진 체력 등 다양한 정보를 UI로 표시  |
-| 시선 인터랙션 및 조준 | 레이저 시각화, 시선 기반 인터랙션, 텔레포트 커서 등 VR 인터페이스 구성 |
+| 시스템         | 설명                                                          |
+| ----------- | ----------------------------------------------------------- |
+| 총기 시스템      | VR에서 무기를 잡고, 방아쇠로 발사, 리로드 가능 (`Gun`, `Shooter`, `Magazine`) |
+| 적 웨이브 시스템   | 시간이 지날수록 점점 더 많은 적이 등장 (`Spawner`, `MobManager`)            |
+| 본진(Core) 방어 | Core 도달 시 체력 감소 → 0이면 게임오버                                  |
+| 피격 및 효과     | 총에 맞은 적은 VFX, SFX, 진동 등 즉각적인 피드백 제공                         |
+| 조준 시스템      | 레이저 및 표적 시각화 (`RayVisualizer`, `Reticle`)                   |
+| UI          | 실시간 생존 시간, 남은 적 수, 탄약, 본진 체력 표시                             |
+| VR 인터랙션     | 시선 기반 활성화, 무기 자동 리로드, 햅틱 피드백 등 지원                           |
 
 ---
 
-## 주요 스크립트 구성
+## 게임 플레이 흐름
 
-### 무기 및 발사
-
-| 스크립트                                             | 설명                                      |
-| ------------------------------------------------ | --------------------------------------- |
-| `Gun.cs`                                         | VR 컨트롤러로 무기를 잡고 놓는 이벤트 처리               |
-| `Shooter.cs`                                     | 레이캐스트 방식으로 총 발사, 피격 판정, 이펙트 생성          |
-| `Magazine.cs`                                    | 탄약 저장 및 리로드 처리 (`IReloadable` 인터페이스 구현) |
-| `WeaponStand.cs`                                 | 무기를 스탠드에 꽂으면 자동 리로드 시작                  |
-| `FlashLight`, `FlashLineRenderer`, `FlashVolume` | 총 발사 시 빛, 선, 후처리 효과 연출                  |
-| `PlaySFX.cs`, `PlayHapticOnInteractable.cs`      | 발사 시 사운드와 햅틱 진동                         |
+```
+Start → Spawner 활성화 → 적 웨이브 시작 → 전투 진행
+→ 적 본진 도달 시 Core HP 감소 → HP 0이면 GameOver
+→ 플레이어가 생존하면 계속 다음 웨이브 생성
+```
 
 ---
 
-### 적 유닛(Mob) 시스템
+## 코드 및 폴더 구조
 
-| 스크립트                       | 설명                              |
-| -------------------------- | ------------------------------- |
-| `Mob.cs`                   | 적 유닛의 생성, 파괴, 본진 도달 시 이벤트 처리    |
-| `MobManager.cs`            | 모든 적 유닛을 관리하고, 일괄 제거 기능 제공      |
-| `Spawner.cs`               | 시간이 지날수록 점점 더 많은 적을 스폰 (웨이브 기반) |
-| `RandomAgentSpeedRatio.cs` | 적마다 이동 속도 랜덤화                   |
-| `RandomColor.cs`           | 적 이펙트/재질 색상 랜덤화                 |
-
----
-
-### 본진(Core) 방어
-
-| 스크립트                                                     | 설명                                |
-| -------------------------------------------------------- | --------------------------------- |
-| `Core.cs`                                                | 본진의 체력 관리, 적 도달 시 피해 처리 및 게임오버 조건 |
-| `ChangeAgentDestination`, `ChangeAgentDestinationToCore` | 적의 목표 지점 설정 (예: Core)             |
-
----
-
-### 인터랙션 / 피드백
-
-| 스크립트                  | 설명                              |
-| --------------------- | ------------------------------- |
-| `Hittable.cs`         | 피격 가능한 오브젝트 인터페이스 (Hit 이벤트 발생)  |
-| `ActivateOnLookAt.cs` | 시선이 일정 시간 머무르면 대상 활성화           |
-| `EventBridge.cs`      | 유니티 이벤트를 외부에서 트리거할 수 있게 연결      |
-| `ReturnToTarget.cs`   | 오브젝트가 천천히 타겟 위치로 돌아가도록 애니메이션 처리 |
-
----
-
-### 조준 및 시각화
-
-| 스크립트                       | 설명                                 |
-| -------------------------- | ---------------------------------- |
-| `RayVisualizer.cs`         | 레이저(LineRenderer) 및 표적(Reticle) 표시 |
-| `TeleportActionHandler.cs` | 입력 액션을 통해 텔레포트 시각화 토글              |
+```bash
+Assets/
+├── Scripts/
+│   ├── Weapon/
+│   │   ├── Gun.cs                 # 무기 잡기/놓기 이벤트
+│   │   ├── Shooter.cs             # 발사 로직 (레이캐스트 기반)
+│   │   ├── Magazine.cs            # 탄약 저장 및 리로드 처리
+│   │   └── WeaponStand.cs         # 무기 스탠드 및 자동 리로드
+│   ├── Enemy/
+│   │   ├── Mob.cs                 # 적 유닛 로직 (이동/피격/도달 처리)
+│   │   ├── MobManager.cs          # 적 전체 관리 및 일괄 제거
+│   │   └── Spawner.cs             # 적 스폰 웨이브 로직
+│   ├── Core/
+│   │   ├── Core.cs                # 본진 체력, GameOver 처리
+│   │   └── ChangeAgentDestinationToCore.cs
+│   ├── Interaction/
+│   │   ├── ActivateOnLookAt.cs   # 시선 기반 상호작용
+│   │   ├── PlayHapticOnInteractable.cs
+│   │   ├── FlashLight.cs, FlashLineRenderer.cs, FlashVolume.cs
+│   ├── Visual/
+│   │   └── RayVisualizer.cs       # 레이저 시각화
+│   ├── UI/
+│   │   ├── MobCounterUI.cs
+│   │   ├── SurvivalTimeUI.cs
+│   │   └── OnHpChanged.cs
+```
 
 ---
 
-### UI 시스템
+## 조작 방법 (VR 컨트롤러 기준)
 
-| 스크립트                      | 설명                         |
-| ------------------------- | -------------------------- |
-| `MobCounterUI.cs`         | Kill / Alive / Spawn 정보 표시 |
-| `SurvivalTimeUI.cs`       | 생존 시간 실시간 표시               |
-| `Core.cs` + `OnHpChanged` | Core 체력 정보를 문자열 형태로 전달     |
+| 기능       | 조작 방식               |
+| -------- | ------------------- |
+| 이동       | 정지형 또는 텔레포트 기반 이동   |
+| 무기 집기/놓기 | 컨트롤러 트리거로 Grab      |
+| 발사       | 트리거 버튼              |
+| 리로드      | 탄창 근처 무기 스탠드에 장착    |
+| 조준       | 손의 방향 + 레이저 시각화     |
+| 텔레포트     | 커서 조준 후 버튼 클릭       |
+| UI 확인    | HUD 또는 월드 공간 UI를 통해 |
 
----
-
-## 의존성 및 기술 스택
-
-* Unity 2021 이상
-* XR Interaction Toolkit
-* TextMeshPro
-* NavMesh Agent
-* UnityEvents 기반 인터랙션 구조
-* VR 디바이스 (Meta Quest 등) 사용 권장
+※ `XR Rig`에 따라 조작법이 달라질 수 있음
 
 ---
 
-## 사용 방법
+## 실행 방법
 
-1. Unity 프로젝트 열기
-2. `XR Rig`를 VR 설정에 맞게 구성
-3. `Spawner` 오브젝트를 `Scene`에 배치하여 적 스폰 시작
-4. `Gun` 오브젝트를 `WeaponStand`에 연결하거나 직접 잡아 발사 가능
-5. `Core` 오브젝트를 씬에 배치하여 본진 역할 수행
+1. Unity 2021 이상에서 프로젝트 열기
+2. **XR Interaction Toolkit 세팅 필수**
+3. `Scene` 열기 → `Spawner`, `Core`, `XR Rig` 확인
+4. ▶ 버튼 클릭 후 VR 디바이스에서 게임 실행
+
+---
+
+## 웨이브 시스템 요약
+
+* **`Spawner`**: 시간에 따라 `Mob` 다수 소환
+* **`Mob.cs`**: `NavMeshAgent` 기반으로 Core를 향해 이동
+* **`MobManager.cs`**: 적 유닛 일괄 관리 및 리셋
+* **Core.cs**: 적 도달 시 체력 감소 및 게임오버 판단
+
+---
+
+## 향후 개선 사항
+
+* 스테이지별 보스 추가 (패턴/체력바 포함)
+* 무기 종류 추가 (샷건, 레이저 등)
+* Co-op 플레이 도입 (멀티플레이 VR)
+* 난이도 모드 및 웨이브 속도 조절 옵션
+* 피격 시 화면 블러/HitStop 등 연출 강화
+* 무기 이펙트/피격 VFX 커스터마이징 시스템
+
+---
+
+## 라이선스
+
+```
+MIT License
+
+본 프로젝트는 자유롭게 사용/수정/배포 가능하며, 상업적 사용 시 출처 표기를 권장합니다.
+```
 
 ---
 
 ## 시연 영상 다시 보기
+
+[![Demo Video](https://img.youtube.com/vi/MuP1mdIqHVw/0.jpg)](https://youtu.be/MuP1mdIqHVw)
 
 [https://youtu.be/MuP1mdIqHVw](https://youtu.be/MuP1mdIqHVw)
